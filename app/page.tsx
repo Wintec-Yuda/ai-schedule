@@ -15,7 +15,7 @@ export default function Home() {
 
   const generateSchedule = async () => {
     if (!plan) {
-      setFormError("Rencana Kegiatan wajib diisi.");
+      setFormError("Please enter your planned activities.");
       return;
     }
     setFormError("");
@@ -24,8 +24,8 @@ export default function Home() {
     try {
       const res = await axios.post("/api/generate-schedule", { plan, language });
       setSchedule(res.data.schedule);
-    } catch (error) {
-      setSchedule("**Error:** Gagal menghasilkan jadwal. Coba lagi.");
+    } catch {
+      setSchedule("Something went wrong while generating your schedule. We're working on it! Please try again soon.");
     }
     setLoading(false);
   };

@@ -36,10 +36,10 @@ export async function POST(req: Request) {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const schedule = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal menghasilkan jadwal";
+    const schedule = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Something went wrong while generating your schedule. We're working on it! Please try again soon.";
 
     return NextResponse.json({ schedule });
-  } catch (error) {
-    return NextResponse.json({ error: "Gagal menghasilkan jadwal" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Something went wrong while generating your schedule. We're working on it! Please try again soon." }, { status: 500 });
   }
 }
