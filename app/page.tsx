@@ -1,101 +1,145 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import axios from "axios";
+import { TextField, Button, CircularProgress, Container, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { motion } from "framer-motion";
+import MarkdownPreview from "@uiw/react-markdown-preview";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [plan, setPlan] = useState("");
+  const [schedule, setSchedule] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState("indonesia");
+  const [formError, setFormError] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  const generateSchedule = async () => {
+    if (!plan) {
+      setFormError("Rencana Kegiatan wajib diisi.");
+      return;
+    }
+    setFormError("");
+    setLoading(true);
+    setSchedule(null);
+    try {
+      const res = await axios.post("/api/generate-schedule", { plan, language });
+      setSchedule(res.data.schedule);
+    } catch (error) {
+      setSchedule("**Error:** Gagal menghasilkan jadwal. Coba lagi.");
+    }
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setPlan("");
+    setSchedule(null);
+    setFormError("");
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 text-gray-200">
+      <Container maxWidth="xl">
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="space-y-6 bg-gray-800/70 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-gray-600"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {!schedule ? (
+            <>
+              <Typography variant="h4" className="text-center text-blue-400 font-bold">
+                AI Scheduler 🧠✨
+              </Typography>
+              <Typography className="text-gray-400 text-center">
+                Enter your planned activities, and let AI create an optimal daily schedule.
+              </Typography>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <TextField
+                  label="Rencana Kegiatan"
+                  multiline
+                  rows={4}
+                  fullWidth
+                  value={plan}
+                  onChange={(e) => setPlan(e.target.value)}
+                  variant="outlined"
+                  InputProps={{ className: "text-white border-gray-600" }}
+                  className="bg-gray-700 border border-gray-600 rounded-lg"
+                  required
+                  error={!!formError}
+                  helperText={formError}
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <FormControl fullWidth variant="outlined" className="bg-gray-700 border border-gray-600 rounded-lg">
+                  <InputLabel>Bahasa</InputLabel>
+                  <Select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    label="Bahasa"
+                    className="text-white"
+                  >
+                    <MenuItem value="indonesia">Bahasa Indonesia</MenuItem>
+                    <MenuItem value="english">English</MenuItem>
+                  </Select>
+                </FormControl>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  onClick={generateSchedule}
+                  disabled={loading}
+                  className="bg-blue-500 hover:bg-blue-600 transition-all"
+                >
+                  {loading ? <CircularProgress size={24} color="primary" /> : "Create Schedule"}
+                </Button>
+              </motion.div>
+            </>
+          ) : (
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="p-4 bg-gray-800/80 border border-blue-400 rounded-xl shadow-md"
+              >
+                <Typography variant="h6" className="text-blue-300 mb-4">Your Daily Schedule:</Typography>
+                <MarkdownPreview source={schedule} style={{ padding: 16, background: "transparent", color: "#d4d4d8" }} />
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  fullWidth
+                  onClick={resetForm}
+                  className="bg-red-500 hover:bg-red-600 transition-all"
+                >
+                  Reset
+                </Button>
+              </motion.div>
+            </>
+          )}
+        </motion.div>
+      </Container>
     </div>
   );
 }
